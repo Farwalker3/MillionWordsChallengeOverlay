@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script>
     pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
   </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Million Words Challenge Overlay</title>
   <style>
     body {
@@ -261,5 +261,52 @@
     startSlideshow();
 
   </script>
+  <!-- Hidden Debug Panel -->
+  <div id="debug-panel" style="display:none; position:fixed; top:10px; left:10px; background:#222; color:#0f0; padding:1rem; border:1px solid #555; z-index:9999; width:300px; height:400px; overflow:auto; font-size:0.9rem;">
+    <h3>Debug Panel</h3>
+    <label>Rotation Speed (minutes): <input type="number" id="debug-speed" value="10" min="1"></label>
+    <button id="apply-speed">Apply</button>
+    <hr>
+    <div id="debug-log"></div>
+  </div>
+
+  <script>
+    // DEBUG TOOLS
+    const debugPanel = document.getElementById('debug-panel');
+    const debugLog = document.getElementById('debug-log');
+    const speedInput = document.getElementById('debug-speed');
+    const applySpeed = document.getElementById('apply-speed');
+
+    function dbg(msg) {
+      const line = document.createElement('div');
+      line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+      debugLog.appendChild(line);
+    }
+
+    // Toggle debug panel with CTRL + SHIFT + D
+    document.addEventListener('keydown', (e) => {
+      if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'd') {
+        debugPanel.style.display = debugPanel.style.display === 'none' ? 'block' : 'none';
+      }
+    });
+
+    // Apply new rotation speed
+    applySpeed.addEventListener('click', () => {
+      const newMinutes = parseInt(speedInput.value);
+      if (!isNaN(newMinutes) && newMinutes > 0) {
+        window.rotationInterval = newMinutes * 60 * 1000;
+        dbg(`Rotation interval changed to ${newMinutes} minutes.`);
+      }
+    });
+
+    // Attach debug logs to PDF rendering events
+    const oldRender = renderPDFPage;
+    renderPDFPage = async function(url, pageNum) {
+      dbg(`Rendering PDF: ${url}, page ${pageNum}`);
+      return await oldRender(url, pageNum);
+    };
+
+  </script>
+
 </body>
 </html>
