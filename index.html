@@ -1,10 +1,162 @@
 <!DOCTYPE html>
-<html>
-	<head>
-		<meta charset="UTF-8">
-		<title></title>
-	</head>
-	<body>
-		
-	</body>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Million Words Challenge Overlay</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #111;
+      color: #eee;
+      font-family: Arial, sans-serif;
+      overflow: hidden;
+    }
+
+    .section {
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 2rem;
+      box-sizing: border-box;
+    }
+
+    h1, h2, p {
+      margin: 0.5rem 0;
+    }
+
+    .slideshow-container {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+    }
+
+    .pdf-image {
+      max-width: 80vw;
+      max-height: 70vh;
+      margin: 1rem;
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+      border: 2px solid #444;
+    }
+
+    #ad-box {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      background: rgba(0,0,0,0.7);
+      padding: 1rem 1.5rem;
+      border-radius: 8px;
+      border: 1px solid #555;
+      font-size: 1.1rem;
+    }
+  </style>
+</head>
+<body>
+  <div id="main-container"></div>
+
+  <div id="ad-box">Your work could be shown here! Submit your stories, PDFs, or markdown files.</div>
+
+  <script>
+    // ============================
+    // CONFIG
+    // ============================
+    const rotationInterval = 10 * 60 * 1000; // 10 minutes
+
+    // PDF/Markdown images will be placed in these folders on GitHub Pages
+    // User will manually drop exported images here
+    const folders = [
+      "community/",
+      "personal/"
+    ];
+
+    const challengeSlide = {
+      type: "text",
+      html: `
+        <div class='section'>
+          <h1>Million Words Challenge</h1>
+          <h2>Begins January 1, 2026</h2>
+          <p>Write one million words before January 1, 2027.</p>
+          <p>Prizes • Publishing Help • Community Features</p>
+          <p>Donate to support writers and creative projects.</p>
+        </div>
+      `
+    };
+
+    // ============================
+    // DYNAMIC IMAGE LOADING
+    // ============================
+    async function loadFolderImages(folder) {
+      try {
+        const response = await fetch(folder);
+        const text = await response.text();
+        const parser = new DOMParser();
+        const htmlDoc = parser.parseFromString(text, "text/html");
+
+        const links = [...htmlDoc.querySelectorAll("a")]
+          .map(a => a.getAttribute("href"))
+          .filter(h => h && (h.endsWith(".png") || h.endsWith(".jpg") || h.endsWith(".jpeg") || h.endsWith(".webp")))
+          .map(h => folder + h);
+
+        return links;
+      } catch (err) {
+        console.error("Error loading folder", folder, err);
+        return [];
+      }
+    }
+
+    async function loadAllImages() {
+      let images = [];
+      for (const folder of folders) {
+        const folderImages = await loadFolderImages(folder);
+        images = images.concat(folderImages);
+      }
+      return images;
+    }
+
+    // ============================
+    // SLIDESHOW
+    // ============================
+    async function startSlideshow() {
+      const main = document.getElementById("main-container");
+
+      const images = await loadAllImages();
+
+      const slides = [challengeSlide, ...images.map(url => ({ type: "image", url }))];
+
+      let index = 0;
+
+      function showSlide() {
+        const slide = slides[index];
+        main.innerHTML = "";
+
+        if (slide.type === "text") {
+          main.innerHTML = slide.html;
+        } else if (slide.type === "image") {
+          const wrapper = document.createElement("div");
+          wrapper.className = "slideshow-container";
+          const img = document.createElement("img");
+          img.className = "pdf-image";
+          img.src = slide.url;
+          wrapper.appendChild(img);
+          main.appendChild(wrapper);
+        }
+
+        index = (index + 1) % slides.length;
+      }
+
+      showSlide();
+      setInterval(showSlide, rotationInterval);
+    }
+
+    startSlideshow();
+  </script>
+</body>
 </html>
