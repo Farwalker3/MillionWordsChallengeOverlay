@@ -1,312 +1,314 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Million Words Challenge Overlay</title>
+
+  <!-- PDF.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script>
+    // worker loader for pdf.js
     pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
   </script>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Million Words Challenge Overlay</title>
+
   <style>
-    body {
-      margin: 0;
-      padding: 0;
-      background: #111;
-      color: #eee;
-      font-family: Arial, sans-serif;
-      overflow: hidden;
-    }
-
-    .section {
-      width: 100vw;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 2rem;
-      box-sizing: border-box;
-    }
-
-    h1, h2, p {
-      margin: 0.5rem 0;
-    }
-
-    .slideshow-container {
-      width: 100%;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-    }
-
-    .pdf-image {
-      max-width: 80vw;
-      max-height: 70vh;
-      margin: 1rem;
-      box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
-      border: 2px solid #444;
-    }
-
-    #ad-box {
-      position: absolute;
-      bottom: 20px;
-      right: 20px;
-      background: rgba(0,0,0,0.7);
-      padding: 1rem 1.5rem;
-      border-radius: 8px;
-      border: 1px solid #555;
-      font-size: 1.1rem;
-    }
+    html,body { height:100%; margin:0; padding:0; background:#0b0b0b; color:#eee; font-family:Inter,Arial,sans-serif; overflow:hidden; }
+    #main-container { width:100vw; height:100vh; display:flex; align-items:center; justify-content:center; }
+    .section { width:100vw; height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:2rem; box-sizing:border-box; }
+    .pdf-image { max-width:80vw; max-height:80vh; box-shadow:0 8px 30px rgba(0,0,0,0.6); border:1px solid rgba(255,255,255,0.06); }
+    #ad-box { position:absolute; bottom:18px; right:18px; background:rgba(0,0,0,0.6); padding:.9rem 1.1rem; border-radius:8px; border:1px solid rgba(255,255,255,0.04); font-size:1rem; }
+    /* debug panel */
+    #debug-panel { display:none; position:fixed; top:10px; left:10px; background:#0b0b0b; color:#a8f0a8; padding:12px; border-radius:6px; border:1px solid #333; z-index:9999; width:320px; max-height:78vh; overflow:auto; font-family:monospace; font-size:13px; }
+    #debug-panel h3 { margin:0 0 .5rem 0; font-size:14px; }
+    #debug-log { margin-top:.5rem; max-height:36vh; overflow:auto; background:#050505; padding:.4rem; border-radius:4px; border:1px solid #222; }
+    .dbg-btn { margin-top:.5rem; display:inline-block; padding:.3rem .5rem; background:#111; color:#bfffbf; border:1px solid #2b2; border-radius:4px; cursor:pointer; }
+    input[type=number]{ width:72px; padding:.2rem; margin-left:.5rem; background:#111; color:#bfbfbf; border:1px solid #333; border-radius:4px; }
   </style>
 </head>
 <body>
-  <div id="main-container"></div>
 
-  <div id="ad-box">Your work could be shown here! Submit your stories, PDFs, or markdown files.</div>
+  <div id="main-container">
+    <!-- initial fallback content -->
+    <div class="section">
+      <h1>Million Words Challenge</h1>
+      <h2>Begins January 1, 2026</h2>
+      <p>Write one million words before January 1, 2027.</p>
+      <p>Prizes • Publishing Help • Community Features</p>
+      <p>Donate to support writers and creative projects.</p>
+    </div>
+  </div>
 
-  <script>
-    // ============================
-    // CONFIG
-    // ============================
-    const rotationInterval = 10 * 60 * 1000; // 10 minutes
+  <div id="ad-box">Your work could be shown here — submit PDFs or markdown for rotation!</div>
 
-    // PDF/Markdown images will be placed in these folders on GitHub Pages
-    // User will manually drop exported images here
-    const folders = [
-      "community/",
-      "personal/"
-    ];
-
-    const challengeSlide = {
-      type: "text",
-      html: `
-        <div class='section'>
-          <h1>Million Words Challenge</h1>
-          <h2>Begins January 1, 2026</h2>
-          <p>Write one million words before January 1, 2027.</p>
-          <p>Prizes • Publishing Help • Community Features</p>
-          <p>Donate to support writers and creative projects.</p>
-        </div>
-      `
-    };
-
-    // ============================
-    // DYNAMIC IMAGE LOADING
-    // ============================
-    async function loadFolderImages(folder) {
-      try {
-        const response = await fetch(folder);
-        const text = await response.text();
-        const parser = new DOMParser();
-        const htmlDoc = parser.parseFromString(text, "text/html");
-
-        const links = [...htmlDoc.querySelectorAll("a")]
-          .map(a => a.getAttribute("href"))
-          .filter(h => h && (h.endsWith(".png") || h.endsWith(".jpg") || h.endsWith(".jpeg") || h.endsWith(".webp")))
-          .map(h => folder + h);
-
-        return links;
-      } catch (err) {
-        console.error("Error loading folder", folder, err);
-        return [];
-      }
-    }
-
-    async function loadAllImages() {
-      let images = [];
-      for (const folder of folders) {
-        const folderImages = await loadFolderImages(folder);
-        images = images.concat(folderImages);
-      }
-      return images;
-    }
-
-    // ============================
-    // SLIDESHOW
-    // ============================
-    async function startSlideshow() {
-      const main = document.getElementById("main-container");
-
-      const images = await loadAllImages();
-
-      const slides = [challengeSlide, ...images.map(url => ({ type: "image", url }))];
-
-      let index = 0;
-
-      function showSlide() {
-        const slide = slides[index];
-        main.innerHTML = "";
-
-        if (slide.type === "text") {
-          main.innerHTML = slide.html;
-        } else if (slide.type === "image") {
-          const wrapper = document.createElement("div");
-          wrapper.className = "slideshow-container";
-          const img = document.createElement("img");
-          img.className = "pdf-image";
-          img.src = slide.url;
-          wrapper.appendChild(img);
-          main.appendChild(wrapper);
-        }
-
-        index = (index + 1) % slides.length;
-      }
-
-      showSlide();
-      setInterval(showSlide, rotationInterval);
-    }
-
-    startSlideshow();
-      // ============================
-    // PDF.js loader for on-the-fly PDF rendering
-    // ============================
-    const pdfFolders = ["pro/", "personal/", "community/"]; // added pro/
-
-    async function loadFolderPDFs(folder) {
-      try {
-        const response = await fetch(folder);
-        const text = await response.text();
-        const parser = new DOMParser();
-        const htmlDoc = parser.parseFromString(text, "text/html");
-
-        const links = [...htmlDoc.querySelectorAll("a")]
-          .map(a => a.getAttribute("href"))
-          .filter(h => h && h.endsWith(".pdf"))
-          .map(h => folder + h);
-
-        return links;
-      } catch (err) {
-        console.error("Error loading pdf folder", folder, err);
-        return [];
-      }
-    }
-
-    async function loadAllPDFs() {
-      let pdfs = [];
-      for (const folder of pdfFolders) {
-        const folderPDFs = await loadFolderPDFs(folder);
-        pdfs = pdfs.concat(folderPDFs);
-      }
-      return pdfs;
-    }
-
-    // Render a PDF page using PDF.js
-    async function renderPDFPage(url, pageNum) {
-      const pdf = await pdfjsLib.getDocument(url).promise;
-      const page = await pdf.getPage(pageNum);
-      const viewport = page.getViewport({ scale: 1.5 });
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      canvas.height = viewport.height;
-      canvas.width = viewport.width;
-      await page.render({ canvasContext: ctx, viewport }).promise;
-      return canvas.toDataURL();
-    }
-
-    async function convertPDFToSlides(pdfUrl) {
-      const pdf = await pdfjsLib.getDocument(pdfUrl).promise;
-      const pages = pdf.numPages;
-      const slides = [];
-      for (let i = 1; i <= pages; i++) {
-        const img = await renderPDFPage(pdfUrl, i);
-        slides.push({ type: "image", url: img });
-      }
-      return slides;
-    }
-
-    // Integrate PDFs and images together
-    async function startSlideshow() {
-      const main = document.getElementById("main-container");
-
-      const images = await loadAllImages();
-      const pdfs = await loadAllPDFs();
-
-      let pdfSlides = [];
-      for (const pdf of pdfs) {
-        const converted = await convertPDFToSlides(pdf);
-        pdfSlides = pdfSlides.concat(converted);
-      }
-
-      const slides = [challengeSlide, ...images.map(url => ({ type: "image", url })), ...pdfSlides];
-
-      let index = 0;
-
-      function showSlide() {
-        const slide = slides[index];
-        main.innerHTML = "";
-
-        if (slide.type === "text") {
-          main.innerHTML = slide.html;
-        } else if (slide.type === "image") {
-          const wrapper = document.createElement("div");
-          wrapper.className = "slideshow-container";
-          const img = document.createElement("img");
-          img.className = "pdf-image";
-          img.src = slide.url;
-          wrapper.appendChild(img);
-          main.appendChild(wrapper);
-        }
-
-        index = (index + 1) % slides.length;
-      }
-
-      showSlide();
-      setInterval(showSlide, rotationInterval);
-    }
-
-    startSlideshow();
-
-  </script>
-  <!-- Hidden Debug Panel -->
-  <div id="debug-panel" style="display:none; position:fixed; top:10px; left:10px; background:#222; color:#0f0; padding:1rem; border:1px solid #555; z-index:9999; width:300px; height:400px; overflow:auto; font-size:0.9rem;">
-    <h3>Debug Panel</h3>
-    <label>Rotation Speed (minutes): <input type="number" id="debug-speed" value="10" min="1"></label>
-    <button id="apply-speed">Apply</button>
-    <hr>
+  <!-- Hidden Debug Panel (toggle with Ctrl+Shift+D) -->
+  <div id="debug-panel" aria-hidden="true">
+    <h3>Debug</h3>
+    <div>
+      Rotation speed (minutes):
+      <input id="debug-speed" type="number" min="0.1" step="0.1" value="10">
+      <button id="apply-speed" class="dbg-btn">Apply</button>
+      <button id="skip-next" class="dbg-btn">Next</button>
+      <button id="skip-prev" class="dbg-btn">Prev</button>
+      <button id="reload-assets" class="dbg-btn">Reload</button>
+    </div>
+    <hr style="border:none;border-top:1px solid #222;margin:.5rem 0;">
     <div id="debug-log"></div>
   </div>
 
   <script>
-    // DEBUG TOOLS
+  (function () {
+    // ======= CONFIG =======
+    // Folders to scan — they must contain a manifest.json listing filenames
+    const FOLDERS = ['pro/', 'personal/', 'community/'];
+
+    // default rotation interval (minutes -> ms)
+    let rotationInterval = 10 * 60 * 1000;
+    let intervalId = null;
+
+    // If you want to limit pages per PDF for performance, set a page cap:
+    const PDF_PAGE_LIMIT = 200; // set high or lower if you want to limit
+
+    // UI elements
+    const main = document.getElementById('main-container');
     const debugPanel = document.getElementById('debug-panel');
     const debugLog = document.getElementById('debug-log');
     const speedInput = document.getElementById('debug-speed');
-    const applySpeed = document.getElementById('apply-speed');
+    const applySpeedBtn = document.getElementById('apply-speed');
+    const skipNextBtn = document.getElementById('skip-next');
+    const skipPrevBtn = document.getElementById('skip-prev');
+    const reloadBtn = document.getElementById('reload-assets');
 
+    // Slide store
+    let slides = []; // { type: 'image', url: '...' } where url may be dataURL or remote url
+    let currentIndex = 0;
+
+    // Logging helper
     function dbg(msg) {
-      const line = document.createElement('div');
-      line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
-      debugLog.appendChild(line);
+      try {
+        const d = new Date().toLocaleTimeString();
+        const line = document.createElement('div');
+        line.textContent = `[${d}] ${msg}`;
+        debugLog.appendChild(line);
+        debugLog.scrollTop = debugLog.scrollHeight;
+        console.log(msg);
+      } catch(e) {
+        console.log('dbg error', e);
+      }
     }
 
-    // Toggle debug panel with CTRL + SHIFT + D
+    // Toggle debug panel with Ctrl+Shift+D
     document.addEventListener('keydown', (e) => {
       if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'd') {
         debugPanel.style.display = debugPanel.style.display === 'none' ? 'block' : 'none';
       }
     });
 
-    // Apply new rotation speed
-    applySpeed.addEventListener('click', () => {
-      const newMinutes = parseInt(speedInput.value);
-      if (!isNaN(newMinutes) && newMinutes > 0) {
-        window.rotationInterval = newMinutes * 60 * 1000;
-        dbg(`Rotation interval changed to ${newMinutes} minutes.`);
+    applySpeedBtn.addEventListener('click', () => {
+      const minutes = parseFloat(speedInput.value);
+      if (!isNaN(minutes) && minutes > 0) {
+        rotationInterval = Math.max(100, minutes * 60 * 1000);
+        dbg(`Rotation speed set to ${minutes} minutes (${rotationInterval} ms)`);
+        restartInterval();
+      } else {
+        dbg('Invalid speed value');
       }
     });
 
-    // Attach debug logs to PDF rendering events
-    const oldRender = renderPDFPage;
-    renderPDFPage = async function(url, pageNum) {
-      dbg(`Rendering PDF: ${url}, page ${pageNum}`);
-      return await oldRender(url, pageNum);
+    skipNextBtn.addEventListener('click', () => { showNext(); });
+    skipPrevBtn.addEventListener('click', () => { showPrev(); });
+    reloadBtn.addEventListener('click', () => { loadAndStart(); });
+
+    // Shuffle (Fisher-Yates)
+    function shuffleArray(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    // Load a manifest.json from a folder. Manifest should be a JSON array of filenames, e.g.:
+    // ["page1.png","page2.png","doc.pdf"]
+    async function loadManifest(folder) {
+      const url = folder + 'manifest.json';
+      try {
+        const res = await fetch(url, {cache: "no-store"});
+        if (!res.ok) {
+          dbg(`No manifest at ${url} (HTTP ${res.status})`);
+          return [];
+        }
+        const list = await res.json();
+        if (!Array.isArray(list)) {
+          dbg(`Manifest ${url} is not an array`);
+          return [];
+        }
+        return list.map(name => folder + name);
+      } catch (err) {
+        dbg(`Error loading manifest ${url}: ${err}`);
+        return [];
+      }
+    }
+
+    // Render a single PDF page with pdf.js and return a dataURL
+    async function renderPDFPage(url, pageNum, scale=1.5) {
+      const pdf = await pdfjsLib.getDocument(url).promise;
+      const page = await pdf.getPage(pageNum);
+      const viewport = page.getViewport({ scale });
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = Math.ceil(viewport.width);
+      canvas.height = Math.ceil(viewport.height);
+      await page.render({ canvasContext: ctx, viewport }).promise;
+      const dataURL = canvas.toDataURL('image/png');
+      return dataURL;
+    }
+
+    // Convert a PDF URL to image slides (data URLs). Capped by PDF_PAGE_LIMIT.
+    async function convertPDFToSlides(pdfUrl) {
+      dbg(`Converting PDF: ${pdfUrl}`);
+      try {
+        const pdfDoc = await pdfjsLib.getDocument(pdfUrl).promise;
+        const total = Math.min(pdfDoc.numPages, PDF_PAGE_LIMIT);
+        const out = [];
+        for (let p = 1; p <= total; p++) {
+          dbg(`Rendering ${pdfUrl} page ${p}/${total}`);
+          const page = await pdfDoc.getPage(p);
+          const viewport = page.getViewport({ scale: 1.4 });
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          canvas.width = Math.ceil(viewport.width);
+          canvas.height = Math.ceil(viewport.height);
+          await page.render({ canvasContext: ctx, viewport }).promise;
+          out.push({ type: 'image', url: canvas.toDataURL('image/png'), source: pdfUrl, page: p });
+        }
+        dbg(`Finished converting ${pdfUrl} (${out.length} pages)`);
+        return out;
+      } catch (err) {
+        dbg(`Error converting PDF ${pdfUrl}: ${err}`);
+        return [];
+      }
+    }
+
+    // Build slides from manifests (images and PDFs)
+    async function buildSlidesFromFolders() {
+      slides = [];
+      for (const folder of FOLDERS) {
+        dbg(`Loading manifest for folder: ${folder}`);
+        const entries = await loadManifest(folder); // returns full paths
+        if (!entries.length) continue;
+        for (const item of entries) {
+          const lower = item.toLowerCase();
+          if (lower.endsWith('.pdf')) {
+            // convert to slides (each page -> image)
+            const converted = await convertPDFToSlides(item);
+            slides.push(...converted);
+          } else if (lower.endsWith('.png') || lower.endsWith('.jpg') || lower.endsWith('.jpeg') || lower.endsWith('.webp') || lower.endsWith('.gif')) {
+            slides.push({ type: 'image', url: item, source: folder, page: null });
+          } else {
+            dbg(`Skipping unsupported file type: ${item}`);
+          }
+        }
+      }
+
+      // Add the challenge splash as a stable text first element so it is guaranteed to be shown at least once:
+      const challengeSlide = {
+        type: 'text',
+        html: `
+          <div class="section">
+            <h1>Million Words Challenge</h1>
+            <h2>Begins January 1, 2026</h2>
+            <p>Write one million words before January 1, 2027.</p>
+            <p>Prizes • Publishing Help • Community Features</p>
+            <p>Donate to support writers and creative projects.</p>
+          </div>`
+      };
+
+      // Mixed/shuffled: include challengeSlide and then shuffle the rest
+      const rest = shuffleArray(slides.slice());
+      slides = [challengeSlide, ...rest];
+      dbg(`Built slides. Total slides (including challenge): ${slides.length}`);
+    }
+
+    // Render the current slide
+    function renderCurrent() {
+      if (!slides || !slides.length) {
+        main.innerHTML = `<div class="section"><h2>No assets found</h2><p>Add manifest.json files to ${FOLDERS.join(', ')} with images and PDFs.</p></div>`;
+        return;
+      }
+      const s = slides[currentIndex];
+      if (!s) return;
+      main.innerHTML = '';
+      if (s.type === 'text') {
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = s.html;
+        main.appendChild(wrapper);
+      } else if (s.type === 'image') {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'section';
+        const img = document.createElement('img');
+        img.className = 'pdf-image';
+        img.src = s.url;
+        img.alt = s.source ? `${s.source}${s.page ? ' - page ' + s.page : ''}` : 'slide image';
+        wrapper.appendChild(img);
+        main.appendChild(wrapper);
+      }
+      dbg(`Displayed slide ${currentIndex+1}/${slides.length}${s.source ? ` (from ${s.source}${s.page ? ', page ' + s.page : ''})` : ''}`);
+    }
+
+    function showNext() {
+      if (!slides.length) return;
+      currentIndex = (currentIndex + 1) % slides.length;
+      renderCurrent();
+    }
+    function showPrev() {
+      if (!slides.length) return;
+      currentIndex = (currentIndex - 1 + slides.length) % slides.length;
+      renderCurrent();
+    }
+
+    function startInterval() {
+      if (intervalId) clearInterval(intervalId);
+      intervalId = setInterval(() => {
+        showNext();
+      }, rotationInterval);
+      dbg(`Interval started: ${rotationInterval} ms`);
+    }
+    function restartInterval() {
+      if (intervalId) clearInterval(intervalId);
+      startInterval();
+    }
+
+    // Top-level loader
+    async function loadAndStart() {
+      dbg('Starting loadAndStart()');
+      slides = [];
+      currentIndex = 0;
+      // Build slides
+      await buildSlidesFromFolders();
+      if (!slides.length) {
+        dbg('No slides available.');
+        renderCurrent();
+        return;
+      }
+      // Show first slide immediately and start interval
+      renderCurrent();
+      startInterval();
+    }
+
+    // initial run
+    loadAndStart();
+
+    // expose some small controls to debug console if needed
+    window.__mw_overlay = {
+      reload: loadAndStart,
+      next: showNext,
+      prev: showPrev,
+      slidesCount: () => slides.length,
+      getSlides: () => slides
     };
 
+  })();
   </script>
-
 </body>
 </html>
