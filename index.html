@@ -157,6 +157,105 @@
     }
 
     startSlideshow();
+      // ============================
+    // PDF.js loader for on-the-fly PDF rendering
+    // ============================
+    const pdfFolders = ["pro/", "personal/", "community/"]; // added pro/
+
+    async function loadFolderPDFs(folder) {
+      try {
+        const response = await fetch(folder);
+        const text = await response.text();
+        const parser = new DOMParser();
+        const htmlDoc = parser.parseFromString(text, "text/html");
+
+        const links = [...htmlDoc.querySelectorAll("a")]
+          .map(a => a.getAttribute("href"))
+          .filter(h => h && h.endsWith(".pdf"))
+          .map(h => folder + h);
+
+        return links;
+      } catch (err) {
+        console.error("Error loading pdf folder", folder, err);
+        return [];
+      }
+    }
+
+    async function loadAllPDFs() {
+      let pdfs = [];
+      for (const folder of pdfFolders) {
+        const folderPDFs = await loadFolderPDFs(folder);
+        pdfs = pdfs.concat(folderPDFs);
+      }
+      return pdfs;
+    }
+
+    // Render a PDF page using PDF.js
+    async function renderPDFPage(url, pageNum) {
+      const pdf = await pdfjsLib.getDocument(url).promise;
+      const page = await pdf.getPage(pageNum);
+      const viewport = page.getViewport({ scale: 1.5 });
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.height = viewport.height;
+      canvas.width = viewport.width;
+      await page.render({ canvasContext: ctx, viewport }).promise;
+      return canvas.toDataURL();
+    }
+
+    async function convertPDFToSlides(pdfUrl) {
+      const pdf = await pdfjsLib.getDocument(pdfUrl).promise;
+      const pages = pdf.numPages;
+      const slides = [];
+      for (let i = 1; i <= pages; i++) {
+        const img = await renderPDFPage(pdfUrl, i);
+        slides.push({ type: "image", url: img });
+      }
+      return slides;
+    }
+
+    // Integrate PDFs and images together
+    async function startSlideshow() {
+      const main = document.getElementById("main-container");
+
+      const images = await loadAllImages();
+      const pdfs = await loadAllPDFs();
+
+      let pdfSlides = [];
+      for (const pdf of pdfs) {
+        const converted = await convertPDFToSlides(pdf);
+        pdfSlides = pdfSlides.concat(converted);
+      }
+
+      const slides = [challengeSlide, ...images.map(url => ({ type: "image", url })), ...pdfSlides];
+
+      let index = 0;
+
+      function showSlide() {
+        const slide = slides[index];
+        main.innerHTML = "";
+
+        if (slide.type === "text") {
+          main.innerHTML = slide.html;
+        } else if (slide.type === "image") {
+          const wrapper = document.createElement("div");
+          wrapper.className = "slideshow-container";
+          const img = document.createElement("img");
+          img.className = "pdf-image";
+          img.src = slide.url;
+          wrapper.appendChild(img);
+          main.appendChild(wrapper);
+        }
+
+        index = (index + 1) % slides.length;
+      }
+
+      showSlide();
+      setInterval(showSlide, rotationInterval);
+    }
+
+    startSlideshow();
+
   </script>
 </body>
 </html>
