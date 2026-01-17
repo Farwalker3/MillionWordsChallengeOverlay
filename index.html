@@ -98,6 +98,297 @@
   </div>
 
   <script>
+  // ======= GAME BOARD SYSTEM =======
+  (function() {
+    const BOARD_SIZE = 10; // 10x10 grid
+    const TWITCH_CHANNEL = 'farwalker3';
+    
+    // Game state
+    const gameState = {
+      position: 0,
+      progressPoints: 0,
+      totalWords: 0,
+      gameMode: 'Starter',
+      diceType: 6,
+      wordCounts: {}, // username -> word count
+      board: []
+    };
+    
+    // Game modes with different dice types (Mario Party style)
+    const GAME_MODES = [
+      { name: 'Starter', dice: 6, minProgress: 0 },
+      { name: 'Explorer', dice: 8, minProgress: 1000 },
+      { name: 'Adventurer', dice: 10, minProgress: 5000 },
+      { name: 'Hero', dice: 12, minProgress: 15000 },
+      { name: 'Legend', dice: 20, minProgress: 50000 }
+    ];
+    
+    // Sound effects (using Web Audio API)
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    
+    function playSound(type) {
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      if (type === 'roll') {
+        oscillator.frequency.value = 440;
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.3);
+      } else if (type === 'move') {
+        oscillator.frequency.value = 523;
+        gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.15);
+      } else if (type === 'special') {
+        oscillator.frequency.value = 659;
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.5);
+      }
+    }
+    
+    // Initialize board
+    function initBoard() {
+      const total = BOARD_SIZE * BOARD_SIZE;
+      gameState.board = [];
+      for (let i = 0; i < total; i++) {
+        const isSpecial = i > 0 && (i % 10 === 0 || i % 15 === 0);
+        gameState.board.push({
+          index: i,
+          special: isSpecial,
+          bonus: isSpecial ? Math.floor(Math.random() * 50) + 50 : 0
+        });
+      }
+    }
+    
+    // Render board
+    function renderBoard() {
+      const boardGrid = document.getElementById('board-grid');
+      boardGrid.style.gridTemplateColumns = `repeat(${BOARD_SIZE}, 1fr)`;
+      boardGrid.style.gridTemplateRows = `repeat(${BOARD_SIZE}, 1fr)`;
+      boardGrid.style.width = '500px';
+      boardGrid.style.height = '500px';
+      
+      boardGrid.innerHTML = '';
+      gameState.board.forEach((cell, idx) => {
+        const cellDiv = document.createElement('div');
+        cellDiv.className = 'board-cell';
+        if (idx === 0) cellDiv.classList.add('start');
+        if (cell.special) cellDiv.classList.add('special');
+        
+        if (idx === gameState.position) {
+          const piece = document.createElement('div');
+          piece.className = 'player-piece';
+          piece.textContent = '🎯';
+          cellDiv.appendChild(piece);
+        }
+        
+        if (cell.special && cell.bonus > 0) {
+          cellDiv.textContent = `+${cell.bonus}`;
+        } else if (idx === 0) {
+          cellDiv.textContent = 'START';
+        }
+        
+        boardGrid.appendChild(cellDiv);
+      });
+    }
+    
+    // Update game mode based on progress
+    function updateGameMode() {
+      for (let i = GAME_MODES.length - 1; i >= 0; i--) {
+        if (gameState.progressPoints >= GAME_MODES[i].minProgress) {
+          if (gameState.gameMode !== GAME_MODES[i].name) {
+            gameState.gameMode = GAME_MODES[i].name;
+            gameState.diceType = GAME_MODES[i].dice;
+            playSound('special');
+            log(`🎉 Level Up! Now in ${gameState.gameMode} mode with d${gameState.diceType}!`);
+          }
+          break;
+        }
+      }
+    }
+    
+    // Update UI stats
+    function updateStats() {
+      document.getElementById('progress-points').textContent = gameState.progressPoints.toLocaleString();
+      document.getElementById('game-mode').textContent = gameState.gameMode;
+      document.getElementById('total-words').textContent = gameState.totalWords.toLocaleString();
+      updateGameMode();
+    }
+    
+    // Update leaderboard
+    function updateLeaderboard() {
+      const leaderboardList = document.getElementById('leaderboard-list');
+      const sorted = Object.entries(gameState.wordCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5);
+      
+      leaderboardList.innerHTML = sorted.map(([user, count], idx) => {
+        const medals = ['🥇', '🥈', '🥉'];
+        const medal = medals[idx] || '🏅';
+        return `<div class="leaderboard-entry"><span>${medal} ${user}</span><span>${count} words</span></div>`;
+      }).join('');
+    }
+    
+    // Roll dice and move
+    function rollDice(username) {
+      const roll = Math.floor(Math.random() * gameState.diceType) + 1;
+      playSound('roll');
+      log(`🎲 ${username} rolled a ${roll}!`);
+      
+      // Animate movement
+      let steps = 0;
+      const moveInterval = setInterval(() => {
+        if (steps < roll) {
+          gameState.position = (gameState.position + 1) % gameState.board.length;
+          playSound('move');
+          renderBoard();
+          steps++;
+        } else {
+          clearInterval(moveInterval);
+          
+          // Check for special space
+          const currentCell = gameState.board[gameState.position];
+          if (currentCell.special) {
+            gameState.progressPoints += currentCell.bonus;
+            playSound('special');
+            log(`✨ Bonus! +${currentCell.bonus} progress points!`);
+          }
+          
+          // Base progress from movement
+          gameState.progressPoints += roll * 10;
+          
+          updateStats();
+          saveGameState();
+        }
+      }, 200);
+    }
+    
+    // Twitch IRC connection
+    let ws = null;
+    
+    function connectTwitch() {
+      ws = new WebSocket('wss://irc-ws.chat.twitch.tv:443');
+      
+      ws.onopen = () => {
+        ws.send('PASS SCHMOOPIIE');
+        ws.send('NICK justinfan12345');
+        ws.send(`JOIN #${TWITCH_CHANNEL}`);
+        log(`✅ Connected to Twitch chat: #${TWITCH_CHANNEL}`);
+      };
+      
+      ws.onmessage = (event) => {
+        const message = event.data;
+        
+        // Handle PING
+        if (message.startsWith('PING')) {
+          ws.send('PONG :tmi.twitch.tv');
+          return;
+        }
+        
+        // Parse chat message
+        const match = message.match(/:(\w+)!.*PRIVMSG #\w+ :(.+)/);
+        if (match) {
+          const username = match[1];
+          const text = match[2].trim();
+          
+          // Count words
+          const wordCount = text.split(/\s+/).filter(w => w.length > 0).length;
+          gameState.wordCounts[username] = (gameState.wordCounts[username] || 0) + wordCount;
+          gameState.totalWords += wordCount;
+          
+          updateStats();
+          updateLeaderboard();
+          saveGameState();
+          
+          // Check for !roll command
+          if (text.toLowerCase().startsWith('!roll')) {
+            rollDice(username);
+          }
+        }
+      };
+      
+      ws.onerror = (error) => {
+        log('❌ Twitch connection error');
+        console.error(error);
+      };
+      
+      ws.onclose = () => {
+        log('⚠️ Twitch connection closed. Reconnecting in 5s...');
+        setTimeout(connectTwitch, 5000);
+      };
+    }
+    
+    // Save/Load game state
+    function saveGameState() {
+      localStorage.setItem('mwc_gameState', JSON.stringify(gameState));
+    }
+    
+    function loadGameState() {
+      const saved = localStorage.getItem('mwc_gameState');
+      if (saved) {
+        const loaded = JSON.parse(saved);
+        Object.assign(gameState, loaded);
+        log('📁 Game state loaded from localStorage');
+      }
+    }
+    
+    function resetGameState() {
+      if (confirm('⚠️ Reset all game progress? This cannot be undone!')) {
+        gameState.position = 0;
+        gameState.progressPoints = 0;
+        gameState.totalWords = 0;
+        gameState.gameMode = 'Starter';
+        gameState.diceType = 6;
+        gameState.wordCounts = {};
+        saveGameState();
+        updateStats();
+        updateLeaderboard();
+        renderBoard();
+        log('🔄 Game state reset!');
+      }
+    }
+    
+    // Logging
+    function log(message) {
+      console.log(message);
+      const debugLog = document.getElementById('debug-log');
+      if (debugLog) {
+        const time = new Date().toLocaleTimeString();
+        debugLog.innerHTML += `<div>[${time}] ${message}</div>`;
+        debugLog.scrollTop = debugLog.scrollHeight;
+      }
+    }
+    
+    // Initialize game
+    function initGame() {
+      loadGameState();
+      initBoard();
+      renderBoard();
+      updateStats();
+      updateLeaderboard();
+      connectTwitch();
+      log('🎮 Game initialized!');
+      
+      // Expose reset function globally for debug panel
+      window.resetGame = resetGameState;
+    }
+    
+    // Start when DOM is ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initGame);
+    } else {
+      initGame();
+    }
+  })();
+  
+  // ======= SLIDESHOW SYSTEM =======
   (function () {
     // ======= CONFIG =======
     // Folders to scan — they must contain a manifest.json listing filenames
