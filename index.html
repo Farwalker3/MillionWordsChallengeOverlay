@@ -454,6 +454,13 @@
     skipNextBtn.addEventListener('click', () => { showNext(); });
     skipPrevBtn.addEventListener('click', () => { showPrev(); });
     reloadBtn.addEventListener('click', () => { loadAndStart(); });
+    if (resetGameBtn) {
+      resetGameBtn.addEventListener('click', () => { 
+        if (typeof window.resetGame === 'function') {
+          window.resetGame();
+        }
+      });
+    }
 
     // Shuffle (Fisher-Yates)
     function shuffleArray(arr) {
