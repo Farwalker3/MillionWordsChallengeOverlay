@@ -298,6 +298,108 @@
       }).join('');
     }
     
+    // Story display functions
+    function displayStoryTicker(story) {
+      const ticker = document.createElement('div');
+      ticker.className = 'story-ticker';
+      ticker.innerHTML = `<div class="story-ticker-text">✍️ Story by ${story.author}: ${story.content}</div>`;
+      document.getElementById('board-container').appendChild(ticker);
+      
+      setTimeout(() => ticker.remove(), 30000); // Remove after 30 seconds
+    }
+    
+    function displayStoryOverlay(story, container) {
+      const overlay = document.createElement('div');
+      overlay.className = 'story-overlay';
+      overlay.innerHTML = `
+        <button class="close-btn">✕</button>
+        <h3>✍️ Story by ${story.author}</h3>
+        <div class="story-content">${story.content}</div>
+        <div class="story-author">— ${story.author} (${story.wordCount} words)</div>
+      `;
+      container.appendChild(overlay);
+      
+      overlay.querySelector('.close-btn').addEventListener('click', () => {
+        overlay.remove();
+      });
+      
+      // Auto-close after duration based on word count
+      const duration = Math.min(story.wordCount * 300, 60000); // 300ms per word, max 60s
+      setTimeout(() => overlay.remove(), duration);
+    }
+    
+    function displayStoryInSlideshow(story) {
+      const slideshow = document.getElementById('slideshow-container');
+      const originalContent = slideshow.innerHTML;
+      
+      slideshow.innerHTML = `
+        <div class="section">
+          <h2 style="color:#e94560;margin-bottom:1rem;">✍️ Story by ${story.author}</h2>
+          <div style="max-width:80%;text-align:left;line-height:1.8;font-size:1.1rem;background:rgba(0,0,0,0.5);padding:2rem;border-radius:8px;border:2px solid #e94560;">
+            ${story.content.split('\n').map(p => `<p style="margin-bottom:1rem;">${p}</p>`).join('')}
+          </div>
+          <div style="margin-top:1rem;color:#aaa;font-style:italic;">— ${story.author} (${story.wordCount} words)</div>
+        </div>
+      `;
+      
+      // Restore after duration
+      const duration = Math.min(story.wordCount * 400, 120000); // 400ms per word, max 2min
+      setTimeout(() => {
+        slideshow.innerHTML = originalContent;
+      }, duration);
+    }
+    
+    function processStory(story) {
+      const wordCount = story.wordCount;
+      
+      // Award bonus points
+      const bonus = wordCount * 5; // 5 points per word
+      gameState.progressPoints += bonus;
+      updateStats();
+      saveGameState();
+      playSound('special');
+      log(`📖 Story approved! ${story.author} earned ${bonus} bonus points!`);
+      
+      // Display based on length
+      if (wordCount < 100) {
+        // Short: ticker at top of game board
+        displayStoryTicker(story);
+      } else if (wordCount < 300) {
+        // Medium: overlay on game board
+        displayStoryOverlay(story, document.getElementById('board-container'));
+      } else {
+        // Long: take over slideshow
+        displayStoryInSlideshow(story);
+      }
+    }
+    
+    function submitStory(username, storyText) {
+      const words = storyText.split(/\s+/).filter(w => w.length > 0);
+      const wordCount = words.length;
+      
+      if (wordCount < MIN_STORY_WORDS) {
+        log(`⚠️ Story from ${username} too short (${wordCount} words, need ${MIN_STORY_WORDS})`);
+        return;
+      }
+      
+      if (containsInappropriateContent(storyText)) {
+        log(`🚫 Story from ${username} rejected: inappropriate content detected`);
+        return;
+      }
+      
+      const story = {
+        author: username,
+        content: storyText,
+        wordCount: wordCount,
+        timestamp: Date.now(),
+        approved: false
+      };
+      
+      storyQueue.push(story);
+      log(`📝 Story submitted by ${username} (${wordCount} words) - pending approval`);
+      updateModQueue();
+    }
+    
     // Roll dice and move
     function rollDice(username) {
       const roll = Math.floor(Math.random() * gameState.diceType) + 1;
