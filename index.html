@@ -149,6 +149,42 @@
       { name: 'Legend', dice: 20, minProgress: 50000 }
     ];
     
+    // Story system
+    const MIN_STORY_WORDS = 50;
+    const storyQueue = [];
+    const approvedStories = [];
+    
+    // Strict content filter - comprehensive blacklist
+    const CONTENT_BLACKLIST = [
+      // Profanity
+      'damn', 'hell', 'crap', 'shit', 'fuck', 'bitch', 'ass', 'bastard', 'piss',
+      // Slurs and discrimination
+      'hate', 'racist', 'sexist', 'nazi', 'supremac',
+      // Violence
+      'kill', 'murder', 'death', 'die', 'blood', 'gore', 'torture', 'weapon', 'gun', 'knife', 'stab', 'shoot',
+      // Adult content
+      'sex', 'porn', 'nude', 'naked', 'breast', 'penis', 'vagina', 'erotic', 'seduc',
+      // Drugs/alcohol
+      'drug', 'cocaine', 'heroin', 'meth', 'weed', 'marijuana', 'drunk', 'alcohol', 'beer', 'wine',
+      // Other inappropriate
+      'suicide', 'rape', 'molest', 'abuse', 'terror'
+    ];
+    
+    function containsInappropriateContent(text) {
+      const lowerText = text.toLowerCase();
+      for (const word of CONTENT_BLACKLIST) {
+        if (lowerText.includes(word)) {
+          return true;
+        }
+      }
+      // Check for excessive caps (yelling)
+      const capsRatio = (text.match(/[A-Z]/g) || []).length / text.length;
+      if (capsRatio > 0.5 && text.length > 20) {
+        return true;
+      }
+      return false;
+    }
+    
     // Sound effects (using Web Audio API)
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
     
