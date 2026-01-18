@@ -594,8 +594,13 @@
       connectTwitch();
       log('🎮 Game initialized!');
       
-      // Expose reset function globally for debug panel
+      // Expose functions globally for debug panel
       window.resetGame = resetGameState;
+      window.approveStory = approveStory;
+      window.rejectStory = rejectStory;
+      
+      // Initialize moderation queue display
+      updateModQueue();
     }
     
     // Start when DOM is ready
