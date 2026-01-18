@@ -533,6 +533,46 @@
       }
     }
     
+    // Moderation queue functions
+    function updateModQueue() {
+      const modQueue = document.getElementById('mod-queue');
+      if (!modQueue) return;
+      
+      if (storyQueue.length === 0) {
+        modQueue.innerHTML = '<div style="color:#888;font-style:italic;">No stories pending</div>';
+        return;
+      }
+      
+      modQueue.innerHTML = storyQueue.map((story, idx) => `
+        <div style="background:rgba(15,52,96,0.3);padding:0.5rem;margin:0.3rem 0;border-radius:4px;border:1px solid #0f3460;">
+          <div style="font-weight:bold;color:#e94560;margin-bottom:0.2rem;">${story.author} (${story.wordCount} words)</div>
+          <div style="margin-bottom:0.3rem;max-height:50px;overflow-y:auto;">${story.content.substring(0, 200)}${story.content.length > 200 ? '...' : ''}</div>
+          <div>
+            <button class="dbg-btn" style="font-size:0.65rem;padding:0.2rem 0.4rem;margin-right:0.3rem;background:#163;" onclick="window.approveStory(${idx})">✓ Approve</button>
+            <button class="dbg-btn" style="font-size:0.65rem;padding:0.2rem 0.4rem;background:#631;" onclick="window.rejectStory(${idx})">✗ Reject</button>
+          </div>
+        </div>
+      `).join('');
+    }
+    
+    function approveStory(index) {
+      if (index >= 0 && index < storyQueue.length) {
+        const story = storyQueue.splice(index, 1)[0];
+        story.approved = true;
+        approvedStories.push(story);
+        processStory(story);
+        updateModQueue();
+      }
+    }
+    
+    function rejectStory(index) {
+      if (index >= 0 && index < storyQueue.length) {
+        const story = storyQueue.splice(index, 1)[0];
+        log(`🚫 Story from ${story.author} rejected by moderator`);
+        updateModQueue();
+      }
+    }
+    
     // Logging
     function log(message) {
       console.log(message);
