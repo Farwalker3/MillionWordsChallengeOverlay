@@ -475,6 +475,15 @@
           if (text.toLowerCase().startsWith('!roll')) {
             rollDice(username);
           }
+          // Check for !story command
+          else if (text.toLowerCase().startsWith('!story ')) {
+            const storyText = text.substring(7).trim();
+            submitStory(username, storyText);
+          }
+          // Auto-detect long messages as potential stories
+          else if (wordCount >= MIN_STORY_WORDS && !text.startsWith('!')) {
+            submitStory(username, text);
+          }
         }
       };
       
