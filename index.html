@@ -65,7 +65,7 @@
         <div id="game-stats">
           <div class="stat-box">📊 Progress: <span id="progress-points">0</span></div>
           <div class="stat-box">🎲 Mode: <span id="game-mode">Starter</span></div>
-          <div class="stat-box">💬 Total Words: <span id="total-words">0</span></div>
+          <div class="stat-box">💬 Total Words In Twitch Chat: <span id="total-words">0</span></div>
         </div>
       </div>
       
@@ -239,8 +239,8 @@
       const boardGrid = document.getElementById('board-grid');
       boardGrid.style.gridTemplateColumns = `repeat(${BOARD_SIZE}, 1fr)`;
       boardGrid.style.gridTemplateRows = `repeat(${BOARD_SIZE}, 1fr)`;
-      boardGrid.style.width = '350px';
-      boardGrid.style.height = '350px';
+      boardGrid.style.width = '280px';
+      boardGrid.style.height = '280px';
       
       boardGrid.innerHTML = '';
       gameState.board.forEach((cell, idx) => {
