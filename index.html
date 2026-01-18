@@ -18,18 +18,18 @@
     /* Game board - left side 60% */
     #game-board { width:60%; height:100%; background:linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); position:relative; display:flex; flex-direction:column; border-right:3px solid #0f3460; }
     #game-header { padding:0.3rem 0.5rem; text-align:center; background:rgba(0,0,0,0.3); border-bottom:2px solid #0f3460; }
-    #game-title { font-size:0.9rem; font-weight:bold; color:#e94560; margin:0; text-shadow:2px 2px 4px rgba(0,0,0,0.5); }
-    #game-stats { display:flex; justify-content:space-around; margin-top:0.2rem; font-size:0.6rem; }
-    .stat-box { background:rgba(0,0,0,0.4); padding:0.2rem 0.4rem; border-radius:3px; border:1px solid #0f3460; font-size:0.6rem; }
+    #game-title { font-size:1.4rem; font-weight:bold; color:#e94560; margin:0; text-shadow:2px 2px 4px rgba(0,0,0,0.5); }
+    #game-stats { display:flex; justify-content:center; gap:0.8rem; margin-top:0.4rem; font-size:0.85rem; }
+    .stat-box { background:rgba(0,0,0,0.4); padding:0.35rem 0.6rem; border-radius:4px; border:1px solid #0f3460; font-size:0.85rem; }
     #board-container { flex:1; display:flex; align-items:center; justify-content:center; padding:0.3rem; position:relative; }
-    #board-grid { display:grid; gap:1px; background:#0a0a0a; padding:3px; border-radius:6px; box-shadow:0 4px 20px rgba(0,0,0,0.8); max-width:280px; max-height:280px; }
-    .board-cell { background:#1e3a5f; border:1px solid #2d5a8a; display:flex; align-items:center; justify-content:center; position:relative; font-size:0.5rem; font-weight:bold; color:#fff; }
+    #board-grid { display:grid; gap:2px; background:#0a0a0a; padding:4px; border-radius:8px; box-shadow:0 4px 20px rgba(0,0,0,0.8); max-width:420px; max-height:420px; }
+    .board-cell { background:#1e3a5f; border:1px solid #2d5a8a; display:flex; align-items:center; justify-content:center; position:relative; font-size:0.85rem; font-weight:bold; color:#fff; }
     .board-cell.special { background:#3a5f1e; border-color:#5a8a2d; }
     .board-cell.start { background:#5f1e3a; border-color:#8a2d5a; }
     .player-piece { width:70%; height:70%; border-radius:50%; background:#e94560; border:1px solid #fff; box-shadow:0 2px 8px rgba(233,69,96,0.6); display:flex; align-items:center; justify-content:center; font-size:0.8rem; }
-    #leaderboard { padding:0.3rem 0.4rem; background:rgba(0,0,0,0.3); border-top:2px solid #0f3460; min-height:60px; max-height:12%; overflow-y:auto; }
-    #leaderboard h3 { margin:0 0 0.15rem 0; font-size:0.65rem; color:#e94560; }
-    .leaderboard-entry { display:flex; justify-content:space-between; padding:0.15rem 0.3rem; margin:0.1rem 0; background:rgba(15,52,96,0.3); border-radius:3px; font-size:0.65rem; }
+    #leaderboard { padding:0.5rem 0.6rem; background:rgba(0,0,0,0.3); border-top:2px solid #0f3460; min-height:80px; max-height:15%; overflow-y:auto; }
+    #leaderboard h3 { margin:0 0 0.3rem 0; font-size:0.95rem; color:#e94560; }
+    .leaderboard-entry { display:flex; justify-content:space-between; padding:0.25rem 0.5rem; margin:0.15rem 0; background:rgba(15,52,96,0.3); border-radius:3px; font-size:0.85rem; }
     /* Scrolling rules */
     #rules-ticker { position:relative; background:rgba(233,69,96,0.9); color:#fff; padding:0.25rem 0.4rem; font-size:0.55rem; font-weight:bold; overflow:hidden; white-space:nowrap; border-top:2px solid #fff; flex-shrink:0; }
     #rules-text { display:inline-block; padding-left:100%; animation:scroll-left 45s linear infinite; }
