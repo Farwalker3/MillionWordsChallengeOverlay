@@ -25,9 +25,11 @@ function checkContent(text, title = '') {
   
   const lowerText = (text + ' ' + title).toLowerCase();
   
-  // Check for banned words
+  // Check for banned words (whole words only)
   for (const word of bannedWords) {
-    if (lowerText.includes(word)) {
+    // Use word boundaries to match whole words only
+    const regex = new RegExp('\\b' + word + '\\b', 'i');
+    if (regex.test(lowerText)) {
       return { passed: false, reason: 'Contains inappropriate language' };
     }
   }
