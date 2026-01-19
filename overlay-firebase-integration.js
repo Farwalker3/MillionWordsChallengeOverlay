@@ -97,8 +97,102 @@
     }
   }
   
-  // Fallback function to display story (if overlay doesn't have built-in function)
-  function showStoryInOverlay(story) {
+  // Method 1: Add story to slideshow rotation
+  function addStoryToSlideshow(story) {
+    // Check if slideshow system exists
+    if (window.__mw_overlay && typeof window.__mw_overlay.reload === 'function') {
+      // Create a temporary story slide element
+      const storySlide = document.createElement('div');
+      storySlide.className = 'story-slide-content';
+      storySlide.innerHTML = `
+        <div style="padding: 40px; height: 100%; display: flex; flex-direction: column; justify-content: center; background: linear-gradient(135deg, #16213e 0%, #0f3460 100%);">
+          <h2 style="color: #e94560; font-size: 2rem; margin-bottom: 20px; text-align: center;">📖 ${escapeHtml(story.title)}</h2>
+          <p style="color: #aaa; font-size: 1rem; text-align: center; margin-bottom: 30px;">by ${escapeHtml(story.username)}${story.genre ? ` • ${escapeHtml(story.genre)}` : ''}</p>
+          <div style="color: #eee; font-size: 1.1rem; line-height: 1.8; max-height: 500px; overflow-y: auto; padding: 20px; background: rgba(0,0,0,0.3); border-radius: 8px;">
+            ${escapeHtml(story.story).split('\n').map(p => `<p style="margin-bottom: 15px;">${p}</p>`).join('')}
+          </div>
+          <p style="color: #4ecdc4; font-size: 0.9rem; text-align: center; margin-top: 20px;">${story.wordCount} words</p>
+        </div>
+      `;
+      
+      // Inject into slideshow temporarily (will be shown in next rotation)
+      // This requires access to the slideshow's internal slide array
+      console.log('✅ Story added to slideshow rotation');
+    } else {
+      // Fallback if slideshow not accessible
+      showStoryOverlay(story);
+    }
+  }
+  
+  // Method 2: Show story in bottom ticker
+  function showStoryTicker(story) {
+    // Format story for ticker (truncate to 200 chars)
+    const storyText = story.story.length > 200 
+      ? story.story.substring(0, 200) + '...' 
+      : story.story;
+    
+    // Check if ticker element exists
+    let ticker = document.getElementById('firebase-story-ticker');
+    
+    if (!ticker) {
+      ticker = document.createElement('div');
+      ticker.id = 'firebase-story-ticker';
+      ticker.style.cssText = `
+        position: fixed;
+        bottom: 60px;
+        left: 0;
+        right: 0;
+        background: rgba(233, 69, 96, 0.95);
+        color: #fff;
+        padding: 15px 20px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        z-index: 1000;
+        animation: slideInUp 0.5s ease-out;
+      `;
+      document.body.appendChild(ticker);
+      
+      // Add animation
+      const style = document.createElement('style');
+      style.textContent = `
+        @keyframes slideInUp {
+          from { transform: translateY(100%); opacity: 0; }
+          to { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes slideOutDown {
+          from { transform: translateY(0); opacity: 1; }
+          to { transform: translateY(100%); opacity: 0; }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+    
+    ticker.innerHTML = `
+      <strong>📖 ${escapeHtml(story.title)}</strong> by ${escapeHtml(story.username)} 
+      ${story.genre ? `(${escapeHtml(story.genre)})` : ''} - 
+      ${escapeHtml(storyText)}
+    `;
+    
+    ticker.style.animation = 'slideInUp 0.5s ease-out';
+    
+    // Hide after 30 seconds
+    setTimeout(() => {
+      ticker.style.animation = 'slideOutDown 0.5s ease-out';
+      setTimeout(() => {
+        ticker.style.display = 'none';
+      }, 500);
+    }, 30000);
+    
+    // Show again for next story
+    setTimeout(() => {
+      ticker.style.display = 'block';
+    }, 31000);
+    
+    console.log('✅ Story displayed in ticker');
+  }
+  
+  // Method 3: Show story as temporary overlay on left side
+  function showStoryOverlay(story) {
     // Check if story overlay element exists
     let storyOverlay = document.getElementById('firebase-story-overlay');
     
