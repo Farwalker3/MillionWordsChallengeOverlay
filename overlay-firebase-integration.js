@@ -33,6 +33,9 @@
       
       console.log(`✅ Loaded ${approvedStories.length} approved stories from Firebase`);
       
+      // Add story word counts to game state
+      addStoryWordCounts();
+      
       if (approvedStories.length > 0 && !storyDisplayInterval) {
         startStoryRotation();
       }
@@ -271,6 +274,53 @@
       }, error => {
         console.error('Error in real-time listener:', error);
       });
+  }
+  
+  // Add story word counts to the game state
+  function addStoryWordCounts() {
+    if (!window.gameState) {
+      console.warn('Game state not found, will try again later');
+      return;
+    }
+    
+    // Track which stories we've already counted
+    const countedStories = JSON.parse(localStorage.getItem('countedStories') || '[]');
+    let newStoriesAdded = false;
+    
+    approvedStories.forEach(story => {
+      // Only count each story once
+      if (!countedStories.includes(story.id)) {
+        const username = story.username.toLowerCase();
+        
+        // Add word count to user's total
+        window.gameState.wordCounts[username] = (window.gameState.wordCounts[username] || 0) + story.wordCount;
+        
+        // Add to total words
+        window.gameState.totalWords += story.wordCount;
+        
+        // Mark as counted
+        countedStories.push(story.id);
+        newStoriesAdded = true;
+        
+        console.log(`📊 Added ${story.wordCount} words from story "${story.title}" to ${username}'s count`);
+      }
+    });
+    
+    if (newStoriesAdded) {
+      // Save counted stories list
+      localStorage.setItem('countedStories', JSON.stringify(countedStories));
+      
+      // Update the display
+      if (typeof window.updateStats === 'function') {
+        window.updateStats();
+      }
+      if (typeof window.updateLeaderboard === 'function') {
+        window.updateLeaderboard();
+      }
+      if (typeof window.saveGameState === 'function') {
+        window.saveGameState();
+      }
+    }
   }
   
   // Escape HTML to prevent XSS
