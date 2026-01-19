@@ -348,7 +348,7 @@
   
   <script>
     const auth = firebase.auth();
-    const db = window.firebaseApp.db;
+    const db = firebase.firestore();
     let stories = [];
     let bannedUsersCount = 0;
     let currentUser = null;
