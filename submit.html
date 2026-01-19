@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Submit Your Story - Million Words Challenge</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Pathway+Extreme:wght@700;800;900&display=swap');
+    
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      font-family: Inter, Arial, sans-serif;
+      background: linear-gradient(135deg, #0f3460 0%, #16213e 50%, #0a0a0a 100%);
+      color: #eee;
+      min-height: 100vh;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    .header {
+      max-width: 900px;
+      width: 100%;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    
+    h1 {
+      font-family: 'Pathway Extreme', Impact, sans-serif;
+      font-size: 2.5rem;
+      color: #e94560;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    }
+    
+    .subtitle {
+      color: #aaa;
+      font-size: 1.1rem;
+      margin-bottom: 20px;
+    }
+    
+    .info-box {
+      background: rgba(233, 69, 96, 0.2);
+      border: 2px solid #e94560;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 30px;
+      max-width: 900px;
+      width: 100%;
+    }
+    
+    .info-box h3 {
+      color: #e94560;
+      margin-bottom: 12px;
+      font-size: 1.2rem;
+    }
+    
+    .info-box ul {
+      margin-left: 20px;
+      line-height: 1.8;
+    }
+    
+    .form-container {
+      background: rgba(15, 52, 96, 0.3);
+      border: 2px solid #0f3460;
+      border-radius: 12px;
+      padding: 20px;
+      max-width: 900px;
+      width: 100%;
+      min-height: 800px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    }
+    
+    iframe {
+      border: none;
+      border-radius: 8px;
+    }
+    
+    .back-link {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 12px 24px;
+      background: rgba(15, 52, 96, 0.6);
+      color: #4ecdc4;
+      text-decoration: none;
+      font-weight: 600;
+      border-radius: 8px;
+      border: 2px solid #0f3460;
+      transition: all 0.3s;
+    }
+    
+    .back-link:hover {
+      background: rgba(233, 69, 96, 0.3);
+      border-color: #e94560;
+      color: #e94560;
+      transform: translateY(-2px);
+    }
+    
+    .setup-notice {
+      background: rgba(255, 165, 0, 0.2);
+      border: 2px solid #ffa500;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      max-width: 900px;
+      width: 100%;
+    }
+    
+    .setup-notice h3 {
+      color: #ffa500;
+      margin-bottom: 10px;
+    }
+    
+    .setup-notice code {
+      background: rgba(0, 0, 0, 0.5);
+      padding: 2px 6px;
+      border-radius: 3px;
+      color: #4ecdc4;
+    }
+    
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 2rem;
+      }
+      
+      .form-container {
+        padding: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>📝 Submit Your Story</h1>
+    <p class="subtitle">Share your writing with the Million Words Challenge community!</p>
+  </div>
+  
+  <div class="info-box">
+    <h3>📌 Submission Guidelines</h3>
+    <ul>
+      <li><strong>Minimum 50 words</strong> - Tell a complete story!</li>
+      <li><strong>Keep it PG</strong> - Family-friendly content only</li>
+      <li><strong>No excessive profanity, violence, or mature themes</strong></li>
+      <li><strong>Stories are manually reviewed before appearing on stream</strong></li>
+      <li><strong>Approved stories will rotate on stream</strong></li>
+    </ul>
+  </div>
+  
+  <!-- SETUP: Replace the src URL below with your Google Form embed URL -->
+  <div id="setupNotice" class="setup-notice">
+    <h3>⚙️ Setup Required</h3>
+    <p>To enable story submissions:</p>
+    <ol style="margin-left: 20px; margin-top: 10px; line-height: 1.8;">
+      <li>Follow the instructions in <code>SETUP_GOOGLE_FORMS.md</code></li>
+      <li>Create your Google Form</li>
+      <li>Replace <code>YOUR_GOOGLE_FORM_EMBED_URL</code> below with your actual form URL</li>
+      <li>This notice will disappear once configured</li>
+    </ol>
+  </div>
+  
+  <div class="form-container">
+    <!-- REPLACE THIS URL with your Google Form embed URL -->
+    <iframe 
+      id="googleForm"
+      src="YOUR_GOOGLE_FORM_EMBED_URL"
+      width="100%" 
+      height="100%" 
+      frameborder="0" 
+      marginheight="0" 
+      marginwidth="0">
+      Loading…
+    </iframe>
+  </div>
+  
+  <a href="index.html" class="back-link">← Back to Overlay</a>
+  
+  <script>
+    // Hide setup notice if form is configured
+    const iframe = document.getElementById('googleForm');
+    const setupNotice = document.getElementById('setupNotice');
+    
+    if (iframe.src.includes('YOUR_GOOGLE_FORM_EMBED_URL')) {
+      // Form not yet configured - show notice
+      setupNotice.style.display = 'block';
+    } else {
+      // Form configured - hide notice
+      setupNotice.style.display = 'none';
+    }
+  </script>
+</body>
+</html>
