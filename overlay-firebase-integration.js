@@ -185,10 +185,10 @@
   }
   
   // Wait for Firebase to be ready
-  if (window.firebaseApp && window.firebaseApp.db) {
+  if (typeof firebase !== 'undefined' && firebase.firestore) {
     init();
   } else {
-    console.warn('Firebase not initialized. Make sure firebase-config.js is loaded first.');
+    console.warn('Firebase not initialized. Make sure Firebase SDK is loaded first.');
   }
   
   // Expose API for manual control
