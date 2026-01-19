@@ -191,63 +191,82 @@
     console.log('✅ Story displayed in ticker');
   }
   
-  // Method 3: Show story as temporary overlay on left side
+  // Method 3: Show story as temporary overlay on left side (replaces board game)
   function showStoryOverlay(story) {
-    // Check if story overlay element exists
-    let storyOverlay = document.getElementById('firebase-story-overlay');
+    const gameBoard = document.getElementById('game-board');
+    const leaderboard = document.getElementById('leaderboard');
     
-    if (!storyOverlay) {
-      // Create story overlay element
-      storyOverlay = document.createElement('div');
-      storyOverlay.id = 'firebase-story-overlay';
-      storyOverlay.style.cssText = `
-        position: fixed;
-        bottom: 60px;
-        left: 0;
-        right: 0;
-        background: rgba(233, 69, 96, 0.9);
-        color: #fff;
-        padding: 15px 20px;
-        font-size: 0.9rem;
-        font-weight: 600;
-        z-index: 1000;
-        animation: slideIn 1s ease-out;
-      `;
-      document.body.appendChild(storyOverlay);
-      
-      // Add animation style
-      const style = document.createElement('style');
-      style.textContent = `
-        @keyframes slideIn {
-          from { transform: translateY(100%); opacity: 0; }
-          to { transform: translateY(0); opacity: 1; }
-        }
-      `;
+    if (!gameBoard) {
+      console.warn('Game board not found, falling back to ticker');
+      showStoryTicker(story);
+      return;
+    }
+    
+    // Create story display element
+    const storyDisplay = document.createElement('div');
+    storyDisplay.id = 'firebase-story-fullscreen';
+    storyDisplay.style.cssText = `
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg, #16213e 0%, #0f3460 100%);
+      padding: 30px;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      animation: fadeIn 0.5s ease-out;
+    `;
+    
+    storyDisplay.innerHTML = `
+      <h2 style="color: #e94560; font-size: 1.8rem; margin-bottom: 15px; text-align: center; font-family: 'Pathway Extreme', Impact, sans-serif;">
+        📖 ${escapeHtml(story.title)}
+      </h2>
+      <p style="color: #aaa; font-size: 0.9rem; text-align: center; margin-bottom: 25px;">
+        by ${escapeHtml(story.username)}${story.genre ? ` • ${escapeHtml(story.genre)}` : ''} • ${story.wordCount} words
+      </p>
+      <div style="color: #eee; font-size: 1rem; line-height: 1.7; max-height: 400px; overflow-y: auto; padding: 20px; background: rgba(0,0,0,0.4); border-radius: 8px; border: 2px solid #0f3460;">
+        ${escapeHtml(story.story).split('\n\n').map(p => `<p style="margin-bottom: 15px;">${p}</p>`).join('')}
+      </div>
+    `;
+    
+    // Add fade animation
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes fadeIn {
+        from { opacity: 0; transform: scale(0.95); }
+        to { opacity: 1; transform: scale(1); }
+      }
+      @keyframes fadeOut {
+        from { opacity: 1; transform: scale(1); }
+        to { opacity: 0; transform: scale(0.95); }
+      }
+    `;
+    if (!document.getElementById('story-overlay-style')) {
+      style.id = 'story-overlay-style';
       document.head.appendChild(style);
     }
     
-    // Format story text (truncate if too long)
-    const storyText = story.story.length > 200 
-      ? story.story.substring(0, 200) + '...' 
-      : story.story;
+    // Hide board game and leaderboard
+    gameBoard.style.display = 'none';
+    if (leaderboard) leaderboard.style.display = 'none';
     
-    storyOverlay.innerHTML = `
-      <strong>📖 ${escapeHtml(story.title)}</strong> by ${escapeHtml(story.username)} 
-      ${story.genre ? `(${escapeHtml(story.genre)})` : ''} - 
-      ${escapeHtml(storyText)}
-    `;
+    // Insert story display
+    gameBoard.parentElement.insertBefore(storyDisplay, gameBoard);
     
-    // Hide after 30 seconds
+    console.log('✅ Story displayed as overlay (replacing board game)');
+    
+    // Remove after 45 seconds and restore board game
     setTimeout(() => {
-      storyOverlay.style.opacity = '0';
-      storyOverlay.style.transition = 'opacity 1s';
-    }, 30000);
-    
-    // Reset opacity for next story
-    setTimeout(() => {
-      storyOverlay.style.opacity = '1';
-      storyOverlay.style.transition = 'none';
-    }, 31000);
+      storyDisplay.style.animation = 'fadeOut 0.5s ease-out';
+      setTimeout(() => {
+        storyDisplay.remove();
+        gameBoard.style.display = '';
+        if (leaderboard) leaderboard.style.display = '';
+      }, 500);
+    }, 45000);
   }
   
   // Calculate display interval based on story queue
