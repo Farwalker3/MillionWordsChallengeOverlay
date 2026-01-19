@@ -332,11 +332,27 @@
   
   // Initialize
   function init() {
-    fetchApprovedStories();
-    setupRealtimeListener();
+    // Wait for gameState to be ready before fetching stories
+    const checkGameState = setInterval(() => {
+      if (window.gameState) {
+        clearInterval(checkGameState);
+        fetchApprovedStories();
+        setupRealtimeListener();
+        
+        // Refresh periodically as backup
+        setInterval(fetchApprovedStories, 10 * 60 * 1000); // Every 10 minutes
+      }
+    }, 100); // Check every 100ms
     
-    // Refresh periodically as backup
-    setInterval(fetchApprovedStories, 10 * 60 * 1000); // Every 10 minutes
+    // Timeout after 10 seconds
+    setTimeout(() => {
+      clearInterval(checkGameState);
+      if (!window.gameState) {
+        console.warn('Game state not found after 10 seconds, proceeding anyway');
+        fetchApprovedStories();
+        setupRealtimeListener();
+      }
+    }, 10000);
   }
   
   // Wait for Firebase to be ready
