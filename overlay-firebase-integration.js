@@ -71,7 +71,7 @@
     const story = approvedStories[currentStoryIndex];
     
     // Randomly choose display method
-    const displayMethods = ['ticker', 'overlay', 'slideshow'];
+    const displayMethods = ['overlay', 'slideshow'];
     const method = displayMethods[Math.floor(Math.random() * displayMethods.length)];
     
     console.log(`📖 Displaying story "${story.title}" via ${method}`);
@@ -136,52 +136,6 @@
     setTimeout(() => {
       slideshow.innerHTML = originalContent;
     }, 45000);
-  }
-  
-  // Method 2: Show story in bottom ticker
-  function showStoryTicker(story) {
-    // Format story for ticker (truncate to 250 chars)
-    const storyText = story.story.length > 250 
-      ? story.story.substring(0, 250) + '...' 
-      : story.story;
-    
-    let ticker = document.getElementById('firebase-story-ticker');
-    
-    if (!ticker) {
-      ticker = document.createElement('div');
-      ticker.id = 'firebase-story-ticker';
-      ticker.style.cssText = `
-        position: fixed;
-        bottom: 60px;
-        left: 0;
-        right: 0;
-        background: rgba(233, 69, 96, 0.95);
-        color: #fff;
-        padding: 18px 25px;
-        font-size: 1rem;
-        font-weight: 600;
-        z-index: 1000;
-        box-shadow: 0 -4px 20px rgba(0,0,0,0.5);
-        transform: translateY(0);
-        transition: transform 0.5s ease-out;
-      `;
-      document.body.appendChild(ticker);
-    }
-    
-    ticker.innerHTML = `
-      <strong>📖 ${escapeHtml(story.title)}</strong> by ${escapeHtml(story.username)} 
-      ${story.genre ? `(${escapeHtml(story.genre)})` : ''} - 
-      ${escapeHtml(storyText)}
-    `;
-    
-    ticker.style.transform = 'translateY(0)';
-    
-    console.log('✅ Story displayed in ticker');
-    
-    // Hide after 30 seconds
-    setTimeout(() => {
-      ticker.style.transform = 'translateY(150%)';
-    }, 30000);
   }
   
   // Method 3: Show story as temporary overlay (replaces board game)
