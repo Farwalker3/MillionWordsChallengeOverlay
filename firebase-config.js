@@ -2,12 +2,12 @@
 // Replace with your actual Firebase config from Firebase Console
 
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyABnfB__3Pf1UnGXGz6rDiv9o2V7Q_WIZY",
+  authDomain: "million-words-challenge-stream.firebaseapp.com",
+  projectId: "million-words-challenge-stream",
+  storageBucket: "million-words-challenge-stream.firebasestorage.app",
+  messagingSenderId: "664783773691",
+  appId: "1:664783773691:web:9af32346a4b1cc35df355e"
 };
 
 // Initialize Firebase
