@@ -308,7 +308,8 @@
       
       try {
         // Submit to Firebase
-        await window.firebaseApp.db.collection('stories').add({
+        const db = firebase.firestore();
+        await db.collection('stories').add({
           username,
           title,
           genre,
