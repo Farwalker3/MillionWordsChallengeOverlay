@@ -13,9 +13,6 @@ const firebaseConfig = {
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 
-// Initialize Firestore
-const db = firebase.firestore();
-
 // Content filtering function
 function checkContent(text, title = '') {
   const bannedWords = [
@@ -62,7 +59,6 @@ async function isUserBanned(username) {
 
 // Export for use in other files
 window.firebaseApp = {
-  db,
   checkContent,
   countWords,
   isUserBanned
