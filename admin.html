@@ -347,7 +347,7 @@
     
     async function loadStories() {
       try {
-        const snapshot = await firestore.collection('stories').orderBy('submittedAt', 'desc').get();
+        const snapshot = await firestore.collection('stories').get();
         stories = [];
         snapshot.forEach(doc => {
           stories.push({ id: doc.id, ...doc.data() });
