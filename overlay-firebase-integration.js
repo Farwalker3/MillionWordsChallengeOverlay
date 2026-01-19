@@ -67,20 +67,33 @@
     console.log(`🔄 Story rotation started (every ${interval / 1000 / 60} minutes)`);
   }
   
-  // Display the current story
+  // Display the current story in a random location
   function displayCurrentStory() {
     if (approvedStories.length === 0) return;
     
     const story = approvedStories[currentStoryIndex];
     
-    // Check if the overlay has story display functions
-    if (typeof window.showStoryTicker === 'function') {
-      window.showStoryTicker(story);
-    } else if (typeof window.displayStory === 'function') {
-      window.displayStory(story);
-    } else {
-      // Fallback: create a custom story display
-      showStoryInOverlay(story);
+    // Randomly choose display method
+    const displayMethods = [
+      'slideshow',  // Add to slideshow rotation
+      'ticker',     // Bottom ticker
+      'overlay'     // Temporary overlay on left side
+    ];
+    
+    const method = displayMethods[Math.floor(Math.random() * displayMethods.length)];
+    
+    console.log(`📖 Displaying story "${story.title}" via ${method}`);
+    
+    switch(method) {
+      case 'slideshow':
+        addStoryToSlideshow(story);
+        break;
+      case 'ticker':
+        showStoryTicker(story);
+        break;
+      case 'overlay':
+        showStoryOverlay(story);
+        break;
     }
   }
   
