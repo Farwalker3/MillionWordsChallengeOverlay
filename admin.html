@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel - Story Moderation</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Pathway+Extreme:wght@700;800;900&display=swap');
+    
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      font-family: Inter, Arial, sans-serif;
+      background: linear-gradient(135deg, #0f3460 0%, #16213e 50%, #0a0a0a 100%);
+      color: #eee;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    h1 {
+      font-family: 'Pathway Extreme', Impact, sans-serif;
+      font-size: 2.5rem;
+      color: #e94560;
+      text-align: center;
+      margin-bottom: 30px;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    }
+    
+    .info-box {
+      background: rgba(78, 205, 196, 0.2);
+      border: 2px solid #4ecdc4;
+      border-radius: 12px;
+      padding: 25px;
+      margin-bottom: 30px;
+    }
+    
+    .info-box h2 {
+      color: #4ecdc4;
+      margin-bottom: 15px;
+      font-size: 1.5rem;
+    }
+    
+    .info-box p {
+      line-height: 1.8;
+      margin-bottom: 10px;
+    }
+    
+    .info-box ol {
+      margin-left: 20px;
+      line-height: 2;
+    }
+    
+    .info-box strong {
+      color: #e94560;
+    }
+    
+    .button-group {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+    
+    .btn {
+      padding: 15px 30px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      transition: transform 0.2s, box-shadow 0.2s;
+      text-align: center;
+    }
+    
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, #4ecdc4 0%, #3ba89d 100%);
+      color: #000;
+    }
+    
+    .btn-secondary {
+      background: linear-gradient(135deg, #e94560 0%, #c02645 100%);
+      color: #fff;
+    }
+    
+    .step-box {
+      background: rgba(15, 52, 96, 0.3);
+      border: 2px solid #0f3460;
+      border-radius: 12px;
+      padding: 25px;
+      margin-bottom: 20px;
+    }
+    
+    .step-box h3 {
+      color: #e94560;
+      margin-bottom: 15px;
+      font-size: 1.3rem;
+    }
+    
+    .step-number {
+      display: inline-block;
+      background: #e94560;
+      color: #fff;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      text-align: center;
+      line-height: 30px;
+      margin-right: 10px;
+      font-weight: 700;
+    }
+    
+    code {
+      background: rgba(0, 0, 0, 0.5);
+      padding: 3px 8px;
+      border-radius: 4px;
+      color: #4ecdc4;
+      font-family: 'Courier New', monospace;
+    }
+    
+    .iframe-container {
+      background: rgba(0, 0, 0, 0.3);
+      border: 2px solid #0f3460;
+      border-radius: 12px;
+      padding: 20px;
+      min-height: 600px;
+      margin-top: 20px;
+    }
+    
+    iframe {
+      border: none;
+      border-radius: 8px;
+    }
+    
+    .back-link {
+      display: inline-block;
+      margin-top: 20px;
+      color: #4ecdc4;
+      text-decoration: none;
+      font-weight: 600;
+      transition: color 0.3s;
+    }
+    
+    .back-link:hover {
+      color: #e94560;
+    }
+    
+    .highlight {
+      background: rgba(233, 69, 96, 0.2);
+      padding: 15px;
+      border-left: 4px solid #e94560;
+      margin: 15px 0;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>⚙️ Admin Panel - Google Sheets Moderation</h1>
+    
+    <div class="info-box">
+      <h2>🎯 How This Works</h2>
+      <p>Since you're using GitHub Pages (static hosting only), story moderation is done directly in Google Sheets. This is actually simpler than a custom admin panel!</p>
+      
+      <p><strong>Benefits:</strong></p>
+      <ul style="margin-left: 20px; line-height: 2;">
+        <li>✅ No backend needed - perfect for GitHub Pages</li>
+        <li>✅ Real-time collaboration - multiple admins can moderate together</li>
+        <li>✅ Easy filtering and sorting with spreadsheet tools</li>
+        <li>✅ Built-in data validation and conditional formatting</li>
+        <li>✅ Export capabilities for backups</li>
+      </ul>
+    </div>
+    
+    <div class="step-box">
+      <h3><span class="step-number">1</span>Open Your Google Sheet</h3>
+      <p>Click the button below to access your story submissions spreadsheet:</p>
+      <div class="button-group">
+        <a href="YOUR_GOOGLE_SHEET_URL" target="_blank" class="btn btn-primary">
+          📊 Open Story Submissions Sheet
+        </a>
+      </div>
+      <div class="highlight">
+        <strong>Setup Required:</strong> Replace <code>YOUR_GOOGLE_SHEET_URL</code> in this file with your actual Google Sheets URL.
+      </div>
+    </div>
+    
+    <div class="step-box">
+      <h3><span class="step-number">2</span>Review Submissions</h3>
+      <p>In your Google Sheet, you'll see all story submissions with these columns:</p>
+      <ul style="margin-left: 20px; line-height: 2; margin-top: 10px;">
+        <li><strong>Timestamp</strong> - When submitted</li>
+        <li><strong>Twitch Username</strong> - Who submitted</li>
+        <li><strong>Story Title</strong> - Title of the story</li>
+        <li><strong>Genre</strong> - Optional genre</li>
+        <li><strong>Your Story</strong> - The story content</li>
+        <li><strong>Status</strong> - Dropdown: Pending/Approved/Rejected</li>
+        <li><strong>Word Count</strong> - Auto-calculated (must be 50+)</li>
+        <li><strong>Approved Date</strong> - When you approved it</li>
+        <li><strong>Notes</strong> - Your moderation notes</li>
+      </ul>
+    </div>
+    
+    <div class="step-box">
+      <h3><span class="step-number">3</span>Approve or Reject Stories</h3>
+      <p>For each new submission:</p>
+      <ol style="margin-left: 20px; line-height: 2; margin-top: 10px;">
+        <li>Read the story content</li>
+        <li>Check the word count (must be 50+)</li>
+        <li>Verify it's PG-friendly (no profanity, violence, mature content)</li>
+        <li>In the <strong>Status</strong> column, select:
+          <ul style="margin-left: 20px; margin-top: 5px;">
+            <li><code>Approved</code> - Story will appear on stream</li>
+            <li><code>Rejected</code> - Story will not appear</li>
+          </ul>
+        </li>
+        <li>If approved, enter today's date in <strong>Approved Date</strong> column</li>
+        <li>Optionally add notes in the <strong>Notes</strong> column</li>
+      </ol>
+    </div>
+    
+    <div class="step-box">
+      <h3><span class="step-number">4</span>Ban Users (If Needed)</h3>
+      <p>To ban a user from submitting stories:</p>
+      <ol style="margin-left: 20px; line-height: 2; margin-top: 10px;">
+        <li>Create a new sheet tab called "Banned Users"</li>
+        <li>List banned usernames (one per row in column A)</li>
+        <li>Manually check new submissions against this list</li>
+        <li>Reject all stories from banned users</li>
+      </ol>
+    </div>
+    
+    <div class="step-box">
+      <h3><span class="step-number">5</span>Quick Tips</h3>
+      <ul style="margin-left: 20px; line-height: 2; margin-top: 10px;">
+        <li>🎨 Use conditional formatting to color-code status (Green=Approved, Red=Rejected, Yellow=Pending)</li>
+        <li>🔍 Use Data → Filter to show only pending stories</li>
+        <li>📊 Use Data → Sort to organize by date or word count</li>
+        <li>💾 File → Download to backup your data periodically</li>
+        <li>👥 Share with other moderators via the Share button</li>
+      </ul>
+    </div>
+    
+    <div class="info-box">
+      <h2>📱 Embed Your Sheet (Optional)</h2>
+      <p>You can embed your Google Sheet directly on this page for quick access:</p>
+      <ol style="margin-left: 20px; line-height: 2; margin-top: 10px;">
+        <li>In Google Sheets, go to File → Share → Publish to web</li>
+        <li>Choose "Embed" and copy the iframe code</li>
+        <li>Paste it in the section below (replace the placeholder)</li>
+        <li>Note: This makes your sheet publicly visible!</li>
+      </ol>
+    </div>
+    
+    <div class="iframe-container">
+      <h3 style="color: #4ecdc4; margin-bottom: 15px;">📊 Live Sheet View</h3>
+      <p style="color: #aaa; margin-bottom: 15px;">
+        Replace the iframe src below with your published Google Sheets embed URL, or leave this section out for privacy.
+      </p>
+      
+      <!-- OPTIONAL: Embed your Google Sheet here -->
+      <!-- 
+      <iframe 
+        src="YOUR_GOOGLE_SHEET_EMBED_URL"
+        width="100%" 
+        height="600px"
+        frameborder="0">
+      </iframe>
+      -->
+      
+      <div style="text-align: center; padding: 40px; color: #aaa;">
+        <p>Sheet embed not configured.</p>
+        <p style="margin-top: 10px;">Click the button above to open in Google Sheets.</p>
+      </div>
+    </div>
+    
+    <div class="button-group">
+      <a href="index.html" class="btn btn-secondary">← Back to Overlay</a>
+      <a href="submit.html" class="btn btn-primary">View Submission Form →</a>
+    </div>
+    
+    <div style="margin-top: 40px; padding: 20px; background: rgba(0,0,0,0.3); border-radius: 8px; text-align: center;">
+      <p style="color: #aaa; font-size: 0.9rem;">
+        💡 <strong>Pro Tip:</strong> Bookmark your Google Sheet for quick access!<br>
+        Need help? Check <code>SETUP_GOOGLE_FORMS.md</code> for detailed instructions.
+      </p>
+    </div>
+  </div>
+</body>
+</html>
