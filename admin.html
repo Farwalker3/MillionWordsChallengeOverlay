@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Panel - Story Moderation</title>
+  <title>Story Admin Panel - Firebase</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Pathway+Extreme:wght@700;800;900&display=swap');
     
@@ -110,8 +110,7 @@
       align-items: center;
     }
     
-    .filters select,
-    .filters input {
+    .filters select {
       padding: 8px 12px;
       background: rgba(0, 0, 0, 0.5);
       border: 2px solid #0f3460;
@@ -130,32 +129,17 @@
       border: 2px solid #0f3460;
       border-radius: 8px;
       padding: 20px;
-      position: relative;
     }
     
-    .story-card.pending {
-      border-color: #ffa500;
-    }
-    
-    .story-card.approved {
-      border-color: #4caf50;
-    }
-    
-    .story-card.rejected {
-      border-color: #f44336;
-      opacity: 0.6;
-    }
+    .story-card.pending { border-color: #ffa500; }
+    .story-card.approved { border-color: #4caf50; }
+    .story-card.rejected { border-color: #f44336; opacity: 0.6; }
     
     .story-header {
       display: flex;
       justify-content: space-between;
-      align-items: flex-start;
       margin-bottom: 15px;
       gap: 15px;
-    }
-    
-    .story-meta {
-      flex: 1;
     }
     
     .story-title {
@@ -173,12 +157,6 @@
       flex-wrap: wrap;
     }
     
-    .story-info span {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-    
     .status-badge {
       padding: 6px 12px;
       border-radius: 20px;
@@ -187,20 +165,9 @@
       text-transform: uppercase;
     }
     
-    .status-badge.pending {
-      background: #ffa500;
-      color: #000;
-    }
-    
-    .status-badge.approved {
-      background: #4caf50;
-      color: #fff;
-    }
-    
-    .status-badge.rejected {
-      background: #f44336;
-      color: #fff;
-    }
+    .status-badge.pending { background: #ffa500; color: #000; }
+    .status-badge.approved { background: #4caf50; color: #fff; }
+    .status-badge.rejected { background: #f44336; color: #fff; }
     
     .story-content {
       background: rgba(0, 0, 0, 0.3);
@@ -228,38 +195,14 @@
       transition: transform 0.2s;
     }
     
-    .btn:hover {
-      transform: translateY(-2px);
-    }
+    .btn:hover { transform: translateY(-2px); }
+    .btn-approve { background: #4caf50; color: #fff; }
+    .btn-reject { background: #f44336; color: #fff; }
+    .btn-ban { background: #9c27b0; color: #fff; }
+    .btn-delete { background: #ff5722; color: #fff; }
+    .btn-refresh { background: #2196f3; color: #fff; }
     
-    .btn-approve {
-      background: #4caf50;
-      color: #fff;
-    }
-    
-    .btn-reject {
-      background: #f44336;
-      color: #fff;
-    }
-    
-    .btn-ban {
-      background: #9c27b0;
-      color: #fff;
-    }
-    
-    .btn-delete {
-      background: #ff5722;
-      color: #fff;
-    }
-    
-    .btn-refresh {
-      background: #2196f3;
-      color: #fff;
-    }
-    
-    .hidden {
-      display: none !important;
-    }
+    .hidden { display: none !important; }
     
     .logout-btn {
       position: fixed;
@@ -276,18 +219,18 @@
   </style>
 </head>
 <body>
-  <!-- Authentication Section -->
+  <!-- Auth Section -->
   <div id="authSection" class="auth-section">
     <h2>🔐 Admin Login</h2>
     <input type="email" id="adminEmail" placeholder="Enter admin email">
     <input type="password" id="adminPassword" placeholder="Enter admin password">
-    <button onclick="authenticate()">Login</button>
+    <button id="loginBtn">Login</button>
     <div id="authError" style="color: #f44336; margin-top: 10px; text-align: center; display: none;"></div>
   </div>
   
-  <!-- Main Admin Panel -->
+  <!-- Main Panel -->
   <div id="adminPanel" class="container hidden">
-    <button class="logout-btn" onclick="logout()">Logout</button>
+    <button class="logout-btn" id="logoutBtn">Logout</button>
     
     <h1>📋 Story Moderation Panel</h1>
     
@@ -313,7 +256,7 @@
     <div class="filters">
       <label>
         Filter:
-        <select id="filterStatus" onchange="filterStories()">
+        <select id="filterStatus">
           <option value="all">All Stories</option>
           <option value="pending" selected>Pending Review</option>
           <option value="approved">Approved</option>
@@ -323,37 +266,48 @@
       
       <label>
         Sort:
-        <select id="sortBy" onchange="filterStories()">
+        <select id="sortBy">
           <option value="newest">Newest First</option>
           <option value="oldest">Oldest First</option>
           <option value="wordcount">Word Count</option>
         </select>
       </label>
       
-      <button class="btn btn-refresh" onclick="loadStories()">🔄 Refresh</button>
+      <button class="btn btn-refresh" id="refreshBtn">🔄 Refresh</button>
     </div>
     
-    <div class="story-list" id="storyList">
-      <!-- Stories will be loaded here -->
-    </div>
+    <div class="story-list" id="storyList"></div>
   </div>
   
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-  
-  <!-- Firebase Config -->
   <script src="firebase-config.js"></script>
   
   <script>
+    // Initialize Firebase services
     const auth = firebase.auth();
-    const db = firebase.firestore();
+    const firestore = firebase.firestore();
+    
     let stories = [];
     let bannedUsersCount = 0;
     let currentUser = null;
     
-    // Check if already authenticated
+    // DOM elements
+    const authSection = document.getElementById('authSection');
+    const adminPanel = document.getElementById('adminPanel');
+    const loginBtn = document.getElementById('loginBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const adminEmail = document.getElementById('adminEmail');
+    const adminPassword = document.getElementById('adminPassword');
+    const authError = document.getElementById('authError');
+    const filterStatus = document.getElementById('filterStatus');
+    const sortBy = document.getElementById('sortBy');
+    const refreshBtn = document.getElementById('refreshBtn');
+    const storyList = document.getElementById('storyList');
+    
+    // Auth state listener
     auth.onAuthStateChanged(user => {
       if (user) {
         currentUser = user;
@@ -361,38 +315,39 @@
       }
     });
     
-    async function authenticate() {
-      const email = document.getElementById('adminEmail').value;
-      const password = document.getElementById('adminPassword').value;
-      const errorDiv = document.getElementById('authError');
+    // Login
+    loginBtn.addEventListener('click', async () => {
+      const email = adminEmail.value;
+      const password = adminPassword.value;
       
       try {
         await auth.signInWithEmailAndPassword(email, password);
-        showAdminPanel();
+        authError.style.display = 'none';
       } catch (error) {
-        errorDiv.textContent = 'Invalid credentials: ' + error.message;
-        errorDiv.style.display = 'block';
+        authError.textContent = 'Invalid credentials: ' + error.message;
+        authError.style.display = 'block';
       }
-    }
+    });
+    
+    // Logout
+    logoutBtn.addEventListener('click', async () => {
+      await auth.signOut();
+      authSection.classList.remove('hidden');
+      adminPanel.classList.add('hidden');
+      adminEmail.value = '';
+      adminPassword.value = '';
+    });
     
     function showAdminPanel() {
-      document.getElementById('authSection').classList.add('hidden');
-      document.getElementById('adminPanel').classList.remove('hidden');
+      authSection.classList.add('hidden');
+      adminPanel.classList.remove('hidden');
       loadStories();
       loadBannedUsersCount();
     }
     
-    async function logout() {
-      await auth.signOut();
-      document.getElementById('authSection').classList.remove('hidden');
-      document.getElementById('adminPanel').classList.add('hidden');
-      document.getElementById('adminEmail').value = '';
-      document.getElementById('adminPassword').value = '';
-    }
-    
     async function loadStories() {
       try {
-        const snapshot = await db.collection('stories').orderBy('submittedAt', 'desc').get();
+        const snapshot = await firestore.collection('stories').orderBy('submittedAt', 'desc').get();
         stories = [];
         snapshot.forEach(doc => {
           stories.push({ id: doc.id, ...doc.data() });
@@ -408,7 +363,7 @@
     
     async function loadBannedUsersCount() {
       try {
-        const snapshot = await db.collection('bannedUsers').get();
+        const snapshot = await firestore.collection('bannedUsers').get();
         bannedUsersCount = snapshot.size;
         document.getElementById('statBanned').textContent = bannedUsersCount;
       } catch (error) {
@@ -425,42 +380,33 @@
     }
     
     function filterStories() {
-      const status = document.getElementById('filterStatus').value;
-      const sortBy = document.getElementById('sortBy').value;
+      const status = filterStatus.value;
+      const sort = sortBy.value;
       
       let filtered = stories.filter(s => {
         if (status === 'all') return true;
         return s.status === status;
       });
       
-      // Sort
       filtered.sort((a, b) => {
-        if (sortBy === 'newest') {
-          return (b.submittedAt?.seconds || 0) - (a.submittedAt?.seconds || 0);
-        }
-        if (sortBy === 'oldest') {
-          return (a.submittedAt?.seconds || 0) - (b.submittedAt?.seconds || 0);
-        }
-        if (sortBy === 'wordcount') {
-          return (b.wordCount || 0) - (a.wordCount || 0);
-        }
+        if (sort === 'newest') return (b.submittedAt?.seconds || 0) - (a.submittedAt?.seconds || 0);
+        if (sort === 'oldest') return (a.submittedAt?.seconds || 0) - (b.submittedAt?.seconds || 0);
+        if (sort === 'wordcount') return (b.wordCount || 0) - (a.wordCount || 0);
       });
       
       renderStories(filtered);
     }
     
     function renderStories(storiesToRender) {
-      const container = document.getElementById('storyList');
-      
       if (storiesToRender.length === 0) {
-        container.innerHTML = '<div style="text-align: center; padding: 40px; color: #aaa;">No stories found</div>';
+        storyList.innerHTML = '<div style="text-align: center; padding: 40px; color: #aaa;">No stories found</div>';
         return;
       }
       
-      container.innerHTML = storiesToRender.map(story => `
+      storyList.innerHTML = storiesToRender.map(story => `
         <div class="story-card ${story.status}">
           <div class="story-header">
-            <div class="story-meta">
+            <div>
               <div class="story-title">${escapeHtml(story.title)}</div>
               <div class="story-info">
                 <span>👤 ${escapeHtml(story.username)}</span>
@@ -491,7 +437,7 @@
     
     async function approveStory(id) {
       try {
-        await db.collection('stories').doc(id).update({
+        await firestore.collection('stories').doc(id).update({
           status: 'approved',
           approvedAt: firebase.firestore.FieldValue.serverTimestamp(),
           moderatedBy: currentUser.uid
@@ -505,7 +451,7 @@
     
     async function rejectStory(id) {
       try {
-        await db.collection('stories').doc(id).update({
+        await firestore.collection('stories').doc(id).update({
           status: 'rejected',
           moderatedBy: currentUser.uid
         });
@@ -520,18 +466,16 @@
       if (!confirm(`Ban user "${username}"? All their stories will be rejected.`)) return;
       
       try {
-        // Add to banned users
-        await db.collection('bannedUsers').doc(username.toLowerCase()).set({
+        await firestore.collection('bannedUsers').doc(username.toLowerCase()).set({
           username,
           bannedAt: firebase.firestore.FieldValue.serverTimestamp(),
           bannedBy: currentUser.uid
         });
         
-        // Reject all their stories
-        const batch = db.batch();
+        const batch = firestore.batch();
         const userStories = stories.filter(s => s.username.toLowerCase() === username.toLowerCase());
         userStories.forEach(story => {
-          batch.update(db.collection('stories').doc(story.id), {
+          batch.update(firestore.collection('stories').doc(story.id), {
             status: 'rejected',
             moderatedBy: currentUser.uid
           });
@@ -550,7 +494,7 @@
       if (!confirm('Permanently delete this story?')) return;
       
       try {
-        await db.collection('stories').doc(id).delete();
+        await firestore.collection('stories').doc(id).delete();
         loadStories();
       } catch (error) {
         console.error('Error deleting story:', error);
@@ -569,6 +513,16 @@
       div.textContent = text;
       return div.innerHTML;
     }
+    
+    // Event listeners
+    filterStatus.addEventListener('change', filterStories);
+    sortBy.addEventListener('change', filterStories);
+    refreshBtn.addEventListener('click', loadStories);
+    
+    // Allow Enter key to login
+    adminPassword.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') loginBtn.click();
+    });
   </script>
 </body>
 </html>
