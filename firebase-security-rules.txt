@@ -1,0 +1,23 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Public can read approved stories
+    match /stories/{storyId} {
+      allow read: if resource.data.status == 'approved';
+      allow create: if request.auth == null 
+                    && request.resource.data.status == 'pending'
+                    && request.resource.data.wordCount >= 50;
+      allow update, delete: if request.auth != null;
+    }
+    
+    // Banned users list (admin only)
+    match /bannedUsers/{userId} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Everything else denied
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
