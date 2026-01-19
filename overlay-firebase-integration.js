@@ -6,7 +6,7 @@
 // <script src="overlay-firebase-integration.js"></script>
 
 (function() {
-  const db = window.firebaseApp.db;
+  const db = firebase.firestore();
   let approvedStories = [];
   let currentStoryIndex = 0;
   let storyDisplayInterval = null;
